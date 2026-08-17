@@ -3,11 +3,10 @@ import Item from '../../models/Item.js'
 const getItemById = async (req, res) => {
     const { id } = req.params
     try {
-        const item = await Item.findOne({ _id: id })
-            .populate({
-                path: 'userId',
-                select: '_id nickname fullname img email',
-            })
+        const item = await Item.findById(id).populate({
+            path: 'userId',
+            select: '_id nickname fullname img email',
+        })
 
         if (item) {
             return res.status(200).json({ item, ok: true, msg: 'Item found' })
@@ -18,7 +17,7 @@ const getItemById = async (req, res) => {
         console.log(error)
         return res.status(404).json({
             ok: false,
-            msg: 'An error occured, contact with admin',
+            msg: 'An error occurred, contact an administrator',
         })
     }
 }

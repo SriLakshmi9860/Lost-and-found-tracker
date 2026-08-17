@@ -1,18 +1,6 @@
 import User from '../../models/User.js'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv'
-dotenv.config();
-
-const secretKey = process.env.SECRET_KEY
-
-
-const generateJWT = async (id) => {
-    const token = jwt.sign({ id }, secretKey, {
-        expiresIn: '24h',
-    })
-    return token
-}
+import generateJWT from '../../utils/generateJWT.js'
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body
@@ -33,12 +21,11 @@ export const loginUser = async (req, res) => {
             })
         }
 
-
         const token = await generateJWT(user.id)
 
         return res.status(200).json({
             ok: true,
-            user:user,
+            user: user,
             msg: 'User Logged',
             token,
             id: user._id,
@@ -47,7 +34,7 @@ export const loginUser = async (req, res) => {
         console.log(error)
         return res.status(404).json({
             ok: false,
-            msg: 'An error occured, contact an administrator',
+            msg: 'An error occurred, contact an administrator',
         })
     }
 }

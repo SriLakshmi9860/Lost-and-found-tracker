@@ -4,10 +4,8 @@ export const updateUser = async (req, res) => {
     const { id } = req.params
     const newData = req.body
 
-    console.log(id, newData)
-
     try {
-        const userUpdated = await User.findOneAndUpdate({ _id: id }, newData, {
+        const userUpdated = await User.findByIdAndUpdate(id, newData, {
             new: true,
         })
 
@@ -25,7 +23,7 @@ export const updateUser = async (req, res) => {
         console.log(error)
         return res.status(404).json({
             ok: false,
-            msg: 'An error occured, contact an administrator',
+            msg: 'An error occurred, contact an administrator',
         })
     }
 }
