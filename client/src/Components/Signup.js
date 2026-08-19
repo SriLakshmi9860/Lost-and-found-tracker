@@ -1,27 +1,14 @@
 import React, { useState } from "react";
-import { Field, Formik, Form } from 'formik'
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import { Formik, Form } from 'formik'
 import { Link } from 'react-router-dom'
 import axios from "axios";
-import { Navigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from '../firebase.js'
-import {
-  Typography,
-  Button,
-  Stack,
-  Divider,
-  TextField,
-  Grid,
-  Box,
-  Avatar,
-} from '@mui/material'
+import { MdPhotoCamera } from 'react-icons/md';
 
 
 function Signup() {
-    const [info, setInfo] = useState("");
-    const [progress, setProgress] = useState(0);
     const [image, setImage] = useState(null);
     
     const handleImageUpload = (e) => {
@@ -29,340 +16,216 @@ function Signup() {
           setImage(e.target.files[0]);
         }
     };
-    
+
     function handleSubmit(values) {
       const { nickname, fullname, email, password } = values;
+
+      const createUser = async (payload) => {
+        try {
+          const response = await axios.post("http://localhost:4000/users/create", payload);
+          if (response.data === "Done") {
+            toast.success('You are now successfully Signed up!', {
+              position: "bottom-right",
+              autoClose: 800,
+              hideProgressBar: false,
+              closeOnClick: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+            window.location.href = "/log-in";
+          } else {
+            toast.error('Something is missing!', {
+              position: "bottom-right",
+              autoClose: 1000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+          }
+        } catch {
+          console.log("Error occurred");
+        }
+      };
   
-      const uploadImage = async () => {
-        if (image) {
-          const storageRef = ref(storage, `/images/${image.name}`);
-          const fileRef = ref(storageRef, image.name); // create file reference
-          const uploadTask = uploadBytesResumable(fileRef, image);
-          uploadTask.on('state_changed', 
-            (snapshot) => {
-              const uploaded = Math.floor(
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-              );
-              setProgress(uploaded);
-            },
-            (error) => {
-              console.log(error);
-            }, 
-            () => {
-              // on complete
-              getDownloadURL(uploadTask.snapshot.ref).then(async (imgUrl) => {
-                const payload = { nickname, fullname, email, password, img: imgUrl };
-                await axios.post("http://localhost:4000/users/create", payload)
-                  .then((response) => {
-                    setInfo(response.data);
-                    if (response.data === "Done") {
-                      toast.success('You are now successfully Signed up!', {
-                        position: "bottom-right",
-                        autoClose: 800,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "light",
-                      });
-                      window.location.href="/log-in";
-                    }
-                    else {
-                      toast.error('Something is missing!', {
-                        position: "bottom-right",
-                        autoClose: 1000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "light",
-                      });
-                    }
-                  })
-                  .catch(() => {
-                    console.log("Error occurred");
-                  });
-              });
+      if (image) {
+        // Upload image first, then create user with image URL
+        const storageRef = ref(storage, `/images/${image.name}`);
+        const fileRef = ref(storageRef, image.name);
+        const uploadTask = uploadBytesResumable(fileRef, image);
+        uploadTask.on('state_changed', 
+          () => {}, // progress (not used)
+          (error) => console.log(error),
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((imgUrl) => {
+              createUser({ nickname, fullname, email, password, img: imgUrl });
             });
-        } else {
-          // No image was selected
-          const payload = { nickname, fullname, email, password };
-          await axios.post("http://localhost:4000/users/create", payload)
-            .then((response) => {
-              setInfo(response.data);
-              if (response.data === "Done") {
-                toast.success('You are now successfully Signed up!', {
-                  position: "bottom-right",
-                  autoClose: 800,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "light",
-                });
-                window.location.href="/log-in";
-              }
-              else {
-                toast.error('Something is missing!', {
-                  position: "bottom-right",
-                  autoClose: 1000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "light",
-                  })
-                }
-       
-                })
-            .catch(() => {
-              console.log("Error occured");
-            });
-        }};
-        uploadImage();
+          }
+        );
+      } else {
+        // No image — create user without one
+        createUser({ nickname, fullname, email, password });
+      }
     }
-    // console.log("State is :"+ this.state)
+
     return (
-      <Stack
-      justifyContent="center"
-      alignItems="center"
-      width="100%"
-      gap="20px"
-      pt="10px"
-  >
-      <Stack
-          direction="row"
-          width="100%"
-          sx={{ backgroundColor: 'primary.main' }}
-          height="125px"
-          gap="4px"
-          alignItems="center"
-          justifyContent="center"
-      >
-          <Stack
-              spacing={0}
-              position="relative"
-              justifyContent="center"
-              width="100%"
-              maxWidth="1440px"
-              height="125px"
-              overflow="hidden"
-              ml={10}
-          >
-              <Typography fontSize="20px" color="white" fontWeight="">
-                  Sign Up
-              </Typography>
+      <div className="flex flex-col justify-center items-center w-full gap-[20px] pt-[10px]">
+        <div className="flex flex-row w-full bg-[#1976d2] h-[125px] gap-[4px] items-center justify-center">
+          <div className="flex flex-col relative justify-center w-full max-w-[1440px] h-[125px] overflow-hidden ml-10">
+            <p className="text-[20px] text-white m-0">
+              Sign Up
+            </p>
+            <p className="text-2xl text-white font-bold m-0">
+              Welcome On Board!
+            </p>
+          </div>
+        </div>
 
-              <Typography variant="h5" color="white" fontWeight="bold">
-                  Welcome On Board!
-              </Typography>
+        <div className="flex flex-col md:flex-row items-center justify-between mt-6 w-full max-w-[1440px]">
+          <div className="hidden md:flex w-1/2">
+            <img
+              className="w-full"
+              src="https://i.ibb.co/G2k63ys/login-1.png"
+              alt="img"
+            />
+          </div>
+          <div className="flex flex-col w-full md:w-[400px] mx-auto px-4 md:px-0">
+            <Formik
+              initialValues={{
+                nickname:'',
+                fullname:'',
+                email: '',
+                password: '',
+              }}
+              onSubmit={(values) => {
+                handleSubmit(values)
+              }}
+            >
+              {({
+                values,
+                handleChange,
+              }) => (
+                <Form>
+                  <div className="flex flex-col items-start gap-[10px] mx-4 md:mx-auto">
+                    <p className="text-[20px] text-xl font-bold m-0">
+                      Sign Up
+                    </p>
+                    <p className="text-[14px] text-[#1976d2] m-0">
+                      Please, fill your information below
+                    </p>
 
-          </Stack>
-      </Stack>
+                    <div className="flex flex-col justify-start w-full">
+                      <div className="flex flex-col items-center w-full gap-2">
+                        {image ? (
+                          <img
+                            src={URL.createObjectURL(image)}
+                            className="w-24 h-24 rounded-full object-cover"
+                            alt="avatar"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-gray-500">
+                            Avatar
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col px-1 w-auto md:w-1/2">
+                        <p className="text-[12px] mt-1 m-0">
+                          Choose your profile picture
+                        </p>
+                      </div>
+                      <div className="flex flex-row items-center gap-2 mt-2">
+                        <label className="flex items-center justify-center bg-[#1976d2] text-white rounded px-4 py-2 cursor-pointer hover:bg-[#115293] transition-colors">
+                          Upload <MdPhotoCamera className="ml-2" />
+                          <input
+                            hidden
+                            accept="image/*"
+                            type="file" 
+                            id="image"
+                            name="image" 
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      </div>
+                      
+                      <input
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#1976d2] mt-4"
+                        type="text"
+                        name="nickname"
+                        placeholder="Nickname"
+                        id="nickname"
+                        required
+                        onChange={handleChange}
+                        value={values.nickname}
+                      />
+                    </div>
 
-      <Stack
-          alignItems="center"
-          justifyContent="space-between"
-          mt={3}
-          direction="row"
-          
-      >
-          <Stack width="50%" display={{ xs: 'none', md: 'flex' }}>
-              <img
-                  width="100%"
-                  src="https://i.ibb.co/G2k63ys/login-1.png"
-                  alt="img"
-              />
-          </Stack>
-          <Stack width={{ xs: '100%', md: '400px' }} margin="0 auto">
-              <Formik
-                  initialValues={{
-                    nickname:'',
-                    fullname:'',
-                    email: '',
-                    password: '',
-                  }}
-                  onSubmit={(values) => {
-                    handleSubmit(values)
-                  }}
+                    <div className="flex justify-start w-full mt-2">
+                      <input
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#1976d2]"
+                        type="text"
+                        name="fullname"
+                        placeholder="Full Name"
+                        required
+                        onChange={handleChange}
+                        value={values.fullname}
+                      />
+                    </div>
+
+                    <div className="flex justify-start w-full mt-2">
+                      <input
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#1976d2]"
+                        required
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="email@example.com"
+                        onChange={handleChange}
+                        value={values.email}
+                      />
+                    </div>
+
+                    <div className="flex justify-start w-full mt-2">
+                      <input
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#1976d2]"
+                        required
+                        type="password"
+                        name="password"
+                        placeholder="password"
+                        id="password"
+                        onChange={handleChange}
+                        value={values.password}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="bg-[#1976d2] text-white text-[16px] w-[100px] py-1 rounded self-end mt-4 hover:bg-[#115293] transition-colors"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+            <hr className="w-full my-4 border-gray-300" />
+            <div className="flex justify-center flex-row gap-[10px] my-4">
+              <p className="text-[16px] m-0">
+                Already have an account?
+              </p>
+              <Link
+                to="/log-in"
+                className="text-[16px] text-[#1976d2] hover:underline"
               >
-                  {({
-                      values,
-                      handleChange,
-                  }) => (
-                      <Form >
-                          <Stack
-                              alignItems="start"
-                              gap="10px"
-                              margin={{ xs: '0 1rem', md: 'auto' }}
-                          >
-                              <Typography fontSize="20px" variant="h5">
-                                  <b>Sign Up</b>
-                              </Typography>
-                              <Typography
-                                  fontSize="14px"
-                                  color="primary.main"
-                              >
-                                  Please, fill your information below
-                              </Typography>
-
-                              <Stack
-                                  justifyContent="flex-start"
-                                  width="100%"
-                              >
-                                <Stack
-                                        alignItems="center"
-                                        width="100%"
-                                        gap={2}
-                                    >
-                                        <Avatar
-                                                src={image && URL.createObjectURL(image)}
-                                                sx={{
-                                                    width: '6rem',
-                                                    height: '6rem',
-                                                }}
-                                            />
-                                    </Stack>
-
-                                    <Stack
-                                                px="5px"
-                                                sx={{
-                                                    width: {
-                                                        xs: 'auto',
-                                                        md: '50%',
-                                                    },
-                                                }}
-                                            >
-                                                <Typography
-                                                    fontSize="12px"
-                                                    mt="5px"
-                                                >
-                                                    Choose your profile picture
-                                                </Typography>
-                                                
-                                                </Stack>
-                                                <Stack direction="row" alignItems="center" spacing={2}>
-                                              <Button variant="contained" component="label" endIcon={<PhotoCamera />}>
-                                                      Upload
-                                                      <input hidden accept="image/*" multiple type="file" 
-                                                      id="image"
-                                                      label="Upload Image"
-                                                      name="image" 
-                                                      onChange={handleImageUpload} />
-                                              </Button>
-                                              
-                                          </Stack>
-                                
-                                  <TextField
-                                      sx={{ width: '100%' }}
-                                      type="text"
-                                      name="nickname"
-                                      margin="dense"
-                                      label="Nickname"
-                                      size="small"
-                                      id="nickname"
-                                      required
-                                      onChange={handleChange}
-                                      value={values.nickname}
-                                  />
-                              </Stack>
-                              <Stack
-                                  justifyContent="flex-start"
-                                  width="100%"
-                              >
-                                  <TextField
-                                      sx={{ width: '100%' }}
-                                      type="text"
-                                      name="fullname"
-                                      margin="dense"
-                                      label="Full Name"
-                                      size="small"
-                                      required
-                                      onChange={handleChange}
-                                      value={values.fullname}
-                                  />
-                              </Stack>
-                              <Stack
-                                  justifyContent="flex-start"
-                                  width="100%"
-                              >
-                                  <TextField
-                                      sx={{ width: '100%' }}
-                                      required
-                                      type="email"
-                                      name="email"
-                                      id="email"
-                                      margin="dense"
-                                      label="email"
-                                      placeholder="email@example.com"
-                                      size="small"
-                                      onChange={handleChange}
-                                      value={values.email}
-                                  />
-                              </Stack>
-                              <Stack
-                                  justifyContent="flex-start"
-                                  width="100%"
-                              >
-                                  <TextField
-                                      sx={{ width: '100%' }}
-                                      required
-                                      type="password"
-                                      name="password"
-                                      margin="dense"
-                                      label="password"
-                                      id="password"
-                                      size="small"
-                                      onChange={handleChange}
-                                      value={values.password}
-                                  />
-                              </Stack>
-
-                              <Button
-                                  variant="contained"
-                                  color="primary"
-                                  type="submit"
-                                  sx={{
-                                      color: 'white',
-                                      textTransform: 'none',
-                                      width: '100px',
-                                      fontSize: '16px',
-                                      alignSelf: 'end',
-                                      margin: '1rem',
-                                      mr: '0',
-                                  }}
-                                  size="small"
-                              >
-                                  Sign Up
-                              </Button>
-                          </Stack>
-                      </Form>
-                  )}
-              </Formik>
-              <Divider sx={{ width: '100%', margin: '1rem 0' }} />
-              <Stack
-                  justifyContent="center"
-                  direction="row"
-                  gap="10px"
-                  margin="1rem 0"
-              >
-                  {' '}
-                  <Typography fontSize="16px">
-                      Already have an account?
-                  </Typography>
-                  <Typography
-                      component={Link}
-                      to="/log-in"
-                      fontSize="16px"
-                  >
-                      Login
-                  </Typography>
-              </Stack>
-          </Stack>
-      </Stack>
-  </Stack>
+                Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
-  export default Signup;
+
+export default Signup;

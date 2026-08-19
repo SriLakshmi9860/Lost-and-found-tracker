@@ -1,112 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { LOGGED_IN, setConstraint } from "../constraints";
-import DeleteIcon from '@mui/icons-material/Delete';
-import ContactsIcon from '@mui/icons-material/Contacts';
+import React, { useState, useEffect, Fragment } from "react";
+import { setConstraint } from "../constraints";
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify';
 import axios from "axios";
-import {
-  Modal,
-  Button,
-  Typography,
-  Avatar,
-  Stack,
-} from '@mui/material'
 import { Carousel } from 'react-carousel-minimal'
-import {MdDateRange} from 'react-icons/md'
-import {GrMap} from 'react-icons/gr'
-
-
+import { MdDateRange, MdDelete, MdContacts } from 'react-icons/md'
+import { GrMap } from 'react-icons/gr'
+import { Dialog, Transition } from '@headlessui/react'
 
 function ItemPage() {
   const [item, setItem] = useState(null);
   const [itemDetails, setItemDetails] = useState(null);
-  const [show, setShow] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showContact, setShowContact] = useState(false);
 
-  const [loading, setloading] = useState(false);
-  const [slides, setSlides] = useState([])
-
-
-  const handleCloseDelete = () => setShowDelete(false);
-  const handleShowDelete = () => setShowDelete(true);
-
-  const handleCloseContact = () => setShowContact(false);
-  const handleShowContact = () => setShowContact(true);
-
-  const handleShow = () => setShow(true);
-
-
   setConstraint(true);
+
   const queryParams = new URLSearchParams(window.location.search);
-
-  
-
   const item_id = queryParams.get('cid');
-
-
   const current_user = queryParams.get('type').split("/")[1];
-
-  console.log(current_user)
   
   useEffect(() => {
-    axios({
-      url: `http://localhost:4000/items/${item_id}`,
-      method: "GET",
-    })
+    axios.get(`http://localhost:4000/items/${item_id}`)
       .then((response) => {
-        // console.log(response.data);
         const data = response.data.item;
         
-          let slides = []
-      
-          data.img.map((item) => {
-              slides.push({ image: item })
-          })
-      
-      
+        const slides = data.img.map((imgUrl) => ({ image: imgUrl }));
         
-        setItem(response.data.item);
-        console.log(response.data.item);
-
-        let created_date = new Date(data.createdAt);
-        let createdAt =
-          created_date.getDate() +
-          "/" +
-          created_date.getMonth() +
-          "/" +
-          created_date.getFullYear() +
-          " " +
-          created_date.getHours() +
-          ":" +
-          created_date.getMinutes();
+        setItem(data);
 
 
-          const itemDetails = (
-            <><Stack
-              width="100%"
-              px={{ xs: 2, sm: 5, md: 10 }}
-              gap="30px"
-              marginTop="20px"
-            >
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                width="100%"
-                justifyContent="space-evenly"
-                alignItems="center"
-                gap={{ xs: '0px', sm: '15px' }}
-              >
-                <Stack
-                  width={{ xs: '100%', sm: '50%', md: '750px' }}
-                  height="280px"
-                  sx={{}}
-                  mt="10px"
-                >
-
+        setItemDetails(
+          <>
+            <div className="flex flex-col w-full px-4 sm:px-8 md:px-20 gap-[30px] mt-[20px]">
+              <div className="flex flex-col sm:flex-row w-full justify-evenly items-center gap-0 sm:gap-[15px]">
+                <div className="flex w-full sm:w-1/2 md:w-[750px] h-[280px] mt-[10px]">
                   <Carousel
                     data={slides}
-                    width={{ xs: '100%', sm: '50%', md: '750px' }}
+                    width="100%"
                     height="270px"
                     radius="10px"
                     dots={false}
@@ -114,417 +45,256 @@ function ItemPage() {
                     slideBackgroundColor="#dbdbdb"
                     slideImageFit="contain"
                     thumbnails={false}
-                    thumbnailWidth="100px" />
-                </Stack>
+                    thumbnailWidth="100px" 
+                  />
+                </div>
 
-
-                <Stack
-                  justifyContent="center"
-                  width={{ xs: '100%', sm: '50%', md: '400px' }}
-                  p="15px"
-                  sx={{
-                    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-                    borderRadius: '5px',
-                  }}
-                  gap="10px"
-                >
-                  <Stack
-                    direction="row"
-                    width="100%"
-                    border="solid 3px"
-                    borderRadius="10px"
-                    sx={{
-                      borderColor: 'primary.main',
-                    }}
-                    gap="10px"
-                    alignItems="center"
-                    justifyContent="center"
-                    p="10px"
-                  >
-                    <Stack
-                      width={{ md: '40%', xs: '100%' }}
-                      alignItems="center"
-                    >
-                      <Avatar
+                <div className="flex flex-col justify-center w-full sm:w-1/2 md:w-[400px] p-[15px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[5px] gap-[10px]">
+                  <div className="flex flex-row w-full border-[3px] border-solid border-[#1976d2] rounded-[10px] gap-[10px] items-center justify-center p-[10px]">
+                    <div className="flex w-full md:w-[40%] items-center justify-center">
+                      <img
                         src={data?.userId?.img}
-                        sx={{
-                          width: { xs: 80, sm: 95, md: 110 },
-                          height: { xs: 80, sm: 95, md: 110 },
-                        }} />
-                    </Stack>
-                    <Stack width={{ md: '60%', xs: '100%' }}>
-                      <Typography
-                        fontSize={{ xs: '20px', sm: '25px' }}
-                        component="div"
-                        fontWeight={'bold'}
-                        mx={{ xs: '0', md: 'auto' }}
-                        color={'primary'}
-                      >
+                        className="w-[80px] h-[80px] sm:w-[95px] sm:h-[95px] md:w-[110px] md:h-[110px] rounded-full object-cover"
+                        alt="User"
+                      />
+                    </div>
+                    <div className="flex w-full md:w-[60%]">
+                      <p className="text-[20px] sm:text-[25px] font-bold mx-0 md:mx-auto text-[#1976d2] m-0">
                         {data?.userId?.fullname}
-                      </Typography>
-                    </Stack>
-                  </Stack>
+                      </p>
+                    </div>
+                  </div>
 
                   {current_user === "true" ? (
-                    <Button
-                    startIcon={<DeleteIcon />}
-                      variant="contained"
-                      color={'primary'}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '8px',
-                      }}
-                      onClick={handleShowDelete}
+                    <button
+                      onClick={() => setShowDelete(true)}
+                      className="bg-[#1976d2] text-white rounded-lg flex items-center justify-center py-2 px-4 hover:bg-[#115293] transition-colors"
                     >
                       <motion.div
                         whileHover={{ scale: [null, 1.05, 1.05] }}
                         transition={{ duration: 0.4 }}
                         whileTap={{ scale: 0.98 }}
+                        className="flex items-center"
                       >
-                        Delete Post
+                        <MdDelete className="mr-2" size={20}/> Delete Post
                       </motion.div>
-                    </Button>
-                      
+                    </button>
                   ) : (
-                    <Button
-                    startIcon={<ContactsIcon />}
-
-                      variant="contained"
-                      color={'primary'}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '8px',
-                      }}
-                      onClick={handleShowContact}
+                    <button
+                      onClick={() => setShowContact(true)}
+                      className="bg-[#1976d2] text-white rounded-lg flex items-center justify-center py-2 px-4 hover:bg-[#115293] transition-colors"
                     >
                       <motion.div
                         whileHover={{ scale: [null, 1.05, 1.05] }}
                         transition={{ duration: 0.4 }}
                         whileTap={{ scale: 0.98 }}
+                        className="flex items-center"
                       >
-                        Contact
+                        <MdContacts className="mr-2" size={20}/> Contact
                       </motion.div>
-                    </Button>
+                    </button>
                   )}
-                </Stack>
-              </Stack>
-              <Stack direction="row" width="100%">
-                <Stack
-                  sx={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    width: '100%',
-                  }}
-                >
-                  <Typography
-                    fontSize="18px"
-                    component="div"
-                    m="0"
-                    fontWeight="bold"
-                  >
+                </div>
+              </div>
+
+              <div className="flex flex-row w-full">
+                <div className="overflow-hidden text-ellipsis w-full">
+                  <p className="text-[18px] m-0 font-bold">
                     Description:
-                  </Typography>
-                  <Typography
-                    fontSize="16px"
-                    component="div"
-                    m="0"
-                    sx={{ textIndent: '100px', textAlign: 'justify' }}
-                  >
+                  </p>
+                  <p className="text-[16px] m-0 indent-[100px] text-justify">
                     {data.description}
-                  </Typography>
-
-                </Stack>
-              </Stack>
-            </Stack><Stack width="100%" px={{ xs: 3, sm: 5, md: 10 }} gap="15px">
-
-                <Stack width="100%" mt='30px' sx={{}}>
-                  <Stack
-
-                    width="100%"
-                    height="3px"
-                    backgroundColor={'primary.main'} />
-
-                  <Stack
-                    width="100%"
-                    direction="row"
-                    height="60px"
-                    alignItems="center"
-                    gap="15px"
-                  >
-                    <Stack
-                      justifyContent="flex-end"
-                      direction="row"
-                      width="49%"
-                      gap="8px"
-                    >
-                      <MdDateRange fontSize="20px" />
-                      <Typography
-                        fontSize="15px"
-                        component="div"
-                        m="0"
-                        fontWeight="bold"
-                      >
-                        Date Found:
-                      </Typography>
-                    </Stack>
-                    <Stack width='3px' height='80%' backgroundColor={'primary.main'} />
-                    <Stack justifyContent="flex-start" direction="row" width="49%">
-                      <Typography fontSize="15px" component="div" m="0">
-                        {data?.date}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                  <Stack
-                    width="100%"
-                    height="3px"
-                    backgroundColor={'primary.main'} />
-                  <Stack
-                    width="100%"
-                    direction="row"
-                    minHeight="60px"
-                    alignItems="center"
-                    gap="15px"
-
-                  >
-                    <Stack
-                      justifyContent="flex-end"
-                      direction="row"
-                      width="49%"
-                      gap="8px"
-                    >
-                      <GrMap fontSize="20px" />
-                      <Typography
-                        fontSize="15px"
-                        component="div"
-                        m="0"
-                        fontWeight="bold"
-                      >
-                        Location Found:
-                      </Typography>
-                    </Stack>
-                    <Stack width='3px' height='80%' backgroundColor={'primary.main'} />
-                    <Stack py='15px' justifyContent="flex-start" direction="row" width="49%">
-                      <Typography fontSize="15px" component="div" m="0">
-                        {data?.location}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                  <Stack
-                    width="100%"
-                    height="3px"
-                    backgroundColor={'primary.main'} />
-                </Stack>
-              </Stack></>
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col w-full px-6 sm:px-10 md:px-24 gap-[15px]">
+              <div className="flex flex-col w-full mt-[30px]">
+                <div className="w-full h-[3px] bg-[#1976d2]" />
+                <div className="flex flex-row w-full h-[60px] items-center gap-[15px]">
+                  <div className="flex flex-row justify-end w-[49%] gap-[8px] items-center">
+                    <MdDateRange className="text-[20px]" />
+                    <p className="text-[15px] m-0 font-bold">
+                      Date Found:
+                    </p>
+                  </div>
+                  <div className="w-[3px] h-[80%] bg-[#1976d2]" />
+                  <div className="flex flex-row justify-start w-[49%] items-center">
+                    <p className="text-[15px] m-0">
+                      {data?.date}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full h-[3px] bg-[#1976d2]" />
+                <div className="flex flex-row w-full min-h-[60px] items-center gap-[15px]">
+                  <div className="flex flex-row justify-end w-[49%] gap-[8px] items-center">
+                    <GrMap className="text-[20px]" />
+                    <p className="text-[15px] m-0 font-bold">
+                      Location Found:
+                    </p>
+                  </div>
+                  <div className="w-[3px] h-[80%] bg-[#1976d2]" />
+                  <div className="flex flex-row justify-start w-[49%] py-[15px] items-center">
+                    <p className="text-[15px] m-0">
+                      {data?.location}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full h-[3px] bg-[#1976d2]" />
+              </div>
+            </div>
+          </>
         );
-        setItemDetails(itemDetails);
       })
       .catch((err) => {
         console.log("Error :", err);
       });
-  },[]);
+  }, [item_id, current_user]);
 
-  const delete_item = () => {
-    console.log("deleted");
-    axios({
-      url: `http://localhost:4000/items/delete/${item_id}`,
-      method: "DELETE",
-    })
-      .then((response) => {
-        console.log(response);
-        handleCloseDelete();
+  const deleteItem = () => {
+    axios.delete(`http://localhost:4000/items/delete/${item_id}`)
+      .then(() => {
+        setShowDelete(false);
         toast.success('Item kicked to 🗑️ successfully!', {
-            position: "bottom-right",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            });
-        window.location.href="/mylistings"
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        window.location.href = "/mylistings";
       })
       .catch((err) => {
         console.log("Error" + err);
       });
   };
 
-  
-
   return (
     <>
-    <Stack width='100%' alignItems='center' pt='10px'>
-            <Stack
-            direction="row"
-            width="100%"
-            sx={{ backgroundColor: 'primary.main' }}
-            height="125px"
-            gap="4px"
-            alignItems="center"
-            justifyContent="center"
-        >
-            <Stack
-                spacing={0}
-                position="relative"
-                justifyContent="center"
-                width="100%"
-                maxWidth="1440px"
-                height="125px"
-                overflow="hidden"
-                ml={{xs: 3, sm: 5, md: 10}}
-            >
-                    
-                        <Typography fontSize={{xs: '18px',sm: '22px', md: '25px'}} color="white" fontWeight="">
-                        {`${item?.type} Item`}
-                        </Typography>
+      <div className="flex flex-col w-full items-center pt-[10px]">
+        <div className="flex flex-row w-full bg-[#357ABD] h-[125px] gap-1 items-center justify-center">
+          <div className="flex flex-col relative justify-center w-full max-w-[1440px] h-[125px] overflow-hidden ml-6 sm:ml-10 md:ml-20">
+            <p className="text-[18px] sm:text-[22px] md:text-[25px] text-white m-0">
+              {`${item?.type} Item`}
+            </p>
+            <p className="text-[17px] sm:text-[21px] md:text-[23px] text-white font-bold m-0">
+              {'Someone Found'} {item?.name}
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center w-full max-w-[1440px]">
+          {itemDetails}
+        </div>
+      </div>
 
-                        <Typography
-                            fontSize={{xs: '17px',sm: '21px', md: '23px'}} 
-                            color="white"
-                            fontWeight="bold"
-                        >
-                            {'Someone Found'} {item?.name}
-                        </Typography>
-                   
-                    </Stack>
-            </Stack>
-            <Stack
-                sx={{
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width: '100%',
-                    maxWidth: '1440px',
-                }}
-            >
-                {itemDetails}
-            </Stack>
-        </Stack>
-        <Modal
-                      open={showDelete}
-                      onClose={handleCloseDelete}
-                      aria-labelledby="modal-modal-title"
-                      aria-describedby="modal-modal-description"
+      {/* Delete Confirmation Modal */}
+      <Transition appear show={showDelete} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setShowDelete(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-[410px] transform overflow-hidden rounded-[20px] bg-[#eff5ff] p-6 text-left align-middle shadow-xl transition-all flex flex-col items-center justify-center gap-[20px]">
+                  <p className="text-[18px] m-0 font-bold">
+                    Are you sure ?
+                  </p>
+                  <div className="flex flex-row w-full justify-evenly items-center gap-4">
+                    <button
+                      className="bg-[#1976d2] text-white rounded-lg py-2 px-6 hover:bg-[#115293] transition-colors"
+                      onClick={deleteItem}
                     >
-                      <Stack
-                    alignItems="center"
-                    justifyContent="center"
-                    gap="20px"
-                    sx={{
-                        
-                        borderRadius: '20px',
-                        backgroundColor: '#eff5ff',
-
-                        width: '410px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        boxShadow: 24,
-                        p: 6,
-                    }}
-                >
-                    <Typography
-                            fontSize="18px"
-                            component="div"
-                            m="0"
-                            fontWeight="bold"
-                          >
-                            Are you sure ?
-                          </Typography>
-                        <Stack direction="row" width="100%"
-                          justifyContent="space-evenly"
-                          alignItems="center"
-                          spacing={2}
-                          >
-                          
-                          <Button
-                            variant="contained"
-                            color={'primary'}
-                            sx={{
-                              textTransform: 'none',
-                              borderRadius: '8px',
-                            }}
-                            onClick={delete_item}
-                          >
-                            <motion.div
-                              whileHover={{ scale: [null, 1.05, 1.05] }}
-                              transition={{ duration: 0.4 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              Yes
-                            </motion.div>
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color={'primary'}
-                            sx={{
-                              textTransform: 'none',
-                              borderRadius: '8px',
-                            }}
-                            onClick={handleCloseDelete}
-                          >
-                            <motion.div
-                              whileHover={{ scale: [null, 1.05, 1.05] }}
-                              transition={{ duration: 0.4 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              No
-                            </motion.div>
-                          </Button>
-                        </Stack>
-                        </Stack>
-                      </Modal>
-
-                      <Modal
-                      open={showContact}
-                      onClose={handleCloseContact}
-                      aria-labelledby="modal-modal-title"
-                      aria-describedby="modal-modal-description"
+                      <motion.div
+                        whileHover={{ scale: [null, 1.05, 1.05] }}
+                        transition={{ duration: 0.4 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Yes
+                      </motion.div>
+                    </button>
+                    <button
+                      className="bg-[#1976d2] text-white rounded-lg py-2 px-6 hover:bg-[#115293] transition-colors"
+                      onClick={() => setShowDelete(false)}
                     >
-                      <Stack
-                    alignItems="center"
-                    justifyContent="center"
-                    gap="20px"
-                    sx={{
-                        
-                        borderRadius: '20px',
-                        backgroundColor: '#eff5ff',
+                      <motion.div
+                        whileHover={{ scale: [null, 1.05, 1.05] }}
+                        transition={{ duration: 0.4 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        No
+                      </motion.div>
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
 
-                        width: '410px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        boxShadow: 24,
-                        p: 6,
-                    }}
-                >
-                    <Typography
-                            fontSize="18px"
-                            component="div"
-                            m="0"
-                            fontWeight="bold"
-                          >
-                            {item?.userId?.fullname}'s Contact :
-                          </Typography>
-                          <Stack direction="row" width="100%"
-                          justifyContent="space-evenly"
-                          alignItems="center"
-                          spacing={2}
-                          >
-                            <Typography
-                            fontSize="16px"
-                            component="div"
-                            m="0"
-                            >
-                            {item?.number}
-                            </Typography>
-                          </Stack>
-                       
-                        </Stack>
-                      </Modal>
+      {/* Contact Info Modal */}
+      <Transition appear show={showContact} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setShowContact(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
 
-
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-[410px] transform overflow-hidden rounded-[20px] bg-[#eff5ff] p-6 text-left align-middle shadow-xl transition-all flex flex-col items-center justify-center gap-[20px]">
+                  <p className="text-[18px] m-0 font-bold">
+                    {item?.userId?.fullname}'s Contact :
+                  </p>
+                  <div className="flex flex-row w-full justify-evenly items-center gap-4">
+                    <p className="text-[16px] m-0">
+                      {item?.number}
+                    </p>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </>
   );
 }

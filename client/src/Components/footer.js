@@ -1,64 +1,37 @@
 import React from 'react'
-import { Link, Stack, Typography } from '@mui/material'
 import { BsFacebook, BsInstagram, BsTwitter } from 'react-icons/bs'
 
 const Footer = () => {
     return (
-        <Stack width="100%" sx={{ pt: '85px' }}>
-            <Stack
-                width="100%"
-                height="130px"
-                sx={{ backgroundColor: '#357ABD' }}
-                py="10px"
-                px="40px"
-                justifyContent="center"
-            >
-                <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    height="100%"
-                    sx={{ borderTop: '3px solid #FFF' }}
-                >
-                    <Typography
-                        fontSize="16px"
-                        fontWeight="light"
-                        color="white"
-                        alignSelf="center"
-                    >
+        <div className="flex flex-col w-full pt-[85px]">
+            <div className="flex flex-col w-full h-[130px] bg-[#357ABD] py-[10px] px-[40px] justify-center">
+                <div className="flex flex-row justify-between h-full border-t-[3px] border-white pt-[15px]">
+                    <p className="text-[16px] font-light text-white self-center m-0">
                         © 2023 All Rights Reserved
-                    </Typography>
+                    </p>
 
-                    <Stack
-                        direction="row"
-                        gap="15px"
-                        justifyContent="flex-end"
-                        alignSelf="center"
-                    >
+                    <div className="flex flex-row gap-[15px] justify-end self-center">
                         <a target="_blank" rel='noreferrer' href="https://www.instagram.com/">
-                            <BsInstagram fontSize="30px" color="white" />
+                            <BsInstagram className="text-[30px] text-white" />
                         </a>
                         <a target="_blank" rel='noreferrer' href="https://www.facebook.com/">
-                            <BsFacebook fontSize="30px" color="white" />
+                            <BsFacebook className="text-[30px] text-white" />
                         </a>
                         <a target="_blank" rel='noreferrer' href="https://www.twiter.com/">
-                            <BsTwitter fontSize="30px" color="white" />
+                            <BsTwitter className="text-[30px] text-white" />
                         </a>
-                    </Stack>
-                </Stack>
-                <Link
+                    </div>
+                </div>
+                <a
                     href="https://github.com/KcMelek/Lost-Found-MERN"
                     target="_blank"
-                    sx={{
-                        fontSize: '12px',
-                        color: 'white',
-                        margin: 'auto',
-                        opacity: '50%',
-                    }}
+                    rel="noreferrer"
+                    className="text-[12px] text-white mx-auto opacity-50 hover:opacity-100 transition-opacity"
                 >
                     GitHub
-                </Link>
-            </Stack>
-        </Stack>
+                </a>
+            </div>
+        </div>
     )
 }
 

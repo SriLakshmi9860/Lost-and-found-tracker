@@ -3,7 +3,7 @@ import Item from '../../models/Item.js'
 const createItem = async (req, res) => {
     try {
         const itemData = req.body
-        console.log(itemData)
+        
         const newItem = new Item(itemData)
         if (req.file) {
             newItem.img = req.file.path

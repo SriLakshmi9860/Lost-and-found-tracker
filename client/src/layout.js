@@ -1,21 +1,15 @@
 import React from "react";
-import { Stack } from '@mui/material'
+
 import Navbar from "./Components/Navbar.js";
 import Footer from "./Components/footer.js";
 
 function Layout(props) {
   return (
-            <Stack
-            spacing="0"
-            width="100%"
-            alignItems="center"
-            height="100vh"
-            justifyContent="space-between"
-        >
+    <div className="flex flex-col w-full items-center min-h-screen justify-between">
       <Navbar />
       {props.children}
       <Footer/>
-        </Stack>
+    </div>
   );
 }
 

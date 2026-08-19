@@ -1,271 +1,120 @@
 import React, { useEffect, useState } from "react";
 import { motion } from 'framer-motion'
-import { FcAbout } from 'react-icons/fc';
-import { FcOvertime } from 'react-icons/fc';
-
+import { FcAbout, FcOvertime } from 'react-icons/fc';
 import { Link } from 'react-router-dom'
 import { setConstraint } from "../constraints";
-import {
-  Button,
-  Typography,
-  Card,
-  CardContent,
-  Avatar,
-  Stack,
-  Pagination,
-} from '@mui/material'
 import Axios from "axios";
-
-const Paginationn = ({ page, setPage, max }) => {
-  const handleChange = (event, page) => {
-    setPage(page);
-  };
-
-  return (
-    <Pagination
-      sx={{ pt: "80px" }}
-      count={Math.ceil(max)}
-      page={page}
-      onChange={handleChange}
-      showLastButton
-      showFirstButton
-    />
-  );
-};
+import PaginationComponent from "./PaginationComponent";
 
 export default function LostItems() {
+  const user_info = JSON.parse(localStorage.getItem("user"));
 
-  const [user_info, setuser_info] = useState(
-    JSON.parse(localStorage.getItem("user"))
-  );
-
-  const ReadMore = ({ children }) => {
-    const text = children;
-    const [isReadMore, setIsReadMore] = useState(true);
-    const toggleReadMore = () => {
-      setIsReadMore(!isReadMore);
-    };
-    return (
-      <p style={{ fontSize: "1rem" }} className="text">
-        {isReadMore ? text.slice(0, 15) : text}
-        <span onClick={toggleReadMore} className="read-or-hide">
-          {isReadMore ? "...." : " show less"}
-        </span>
-      </p>
-    );
-  };
   setConstraint(true);
   
-  const [item, setitem] = useState("");
+  const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [maxPages, setMaxPages] = useState(1);
 
   useEffect(() => {
-    
-    Axios({
-      url: "http://localhost:4000/items",
-      method: "GET",
-    })
+    Axios.get("http://localhost:4000/items")
       .then((response) => {      
-      const allitems = response.data.items.reverse();
-      const itemsPerPage = 9;
-      const numItems = allitems.length;
-      setMaxPages(Math.ceil(numItems / itemsPerPage));
-      const startIndex = (page - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const data = allitems.slice(startIndex, endIndex);
+        const allItems = response.data.items.reverse();
+        const itemsPerPage = 9;
+        setMaxPages(Math.ceil(allItems.length / itemsPerPage));
 
-        let items = [];
-        data.map((item) => {
-          let created_date = new Date(item.createdAt);
-        
-          let createdAt =
-            created_date.getDate() +
-            "/" +
-            created_date.getMonth() +
-            "/" +
-            created_date.getFullYear() +
-            " " +
-            created_date.getHours() +
-            ":" +
-            created_date.getMinutes();
+        const startIndex = (page - 1) * itemsPerPage;
+        const data = allItems.slice(startIndex, startIndex + itemsPerPage);
+
+        const filtered = data
+          .filter((item) => item.type === "Lost")
+          .map((item) => {
+            const created_date = new Date(item.createdAt);
+            const createdAt =
+              created_date.getDate() + "/" +
+              created_date.getMonth() + "/" +
+              created_date.getFullYear() + " " +
+              created_date.getHours() + ":" +
+              created_date.getMinutes();
+            
+            const isOwner = item.userId === user_info._id;
           
-          if (item.type === "Lost") {
-            let user = false;
-            if (item.userId === user_info._id) {
-              user = true;
-            }
-          
-            items.push(
+            return (
               <motion.div
-              whileHover={{ scale: [null, 1.05, 1.05] }}
-              transition={{ duration: 0.4 }}
-              key={item.name}
-          >
-              <Card
-                  sx={{
-                      width: '270px',
-                      height: '400px',
-                      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-                  }}
+                whileHover={{ scale: [null, 1.05, 1.05] }}
+                transition={{ duration: 0.4 }}
+                key={item._id}
               >
-                  <CardContent
-                      sx={{
-                          borderRadius: '8px',
-                          padding: '8px',
-                          gap: '16px',
-                      }}
-                  >
-                      <Stack
-                          alignItems="center"
-                          justifyContent="center"
-                          flexDirection="row"
-                          position="relative"
-                          sx={{
-                              backgroundColor: '#9CC0DF',
-                              height: '200px',
-                              borderRadius: '8px',
-                          }}
-                      >
-                          <Stack
-                              sx={{
-                                  borderRadius: '7rem',
-                              }}
-                          >
-                              <Avatar
-                                  src={item.img}
-                                  sx={{
-                                      width: '190px',
-                                      height: '190px',
-                                  }}
-                              />
-                          </Stack>
-                          
-                      </Stack>
-                      <Stack p="11px" gap="11px">
-                          <Typography
-                              noWrap
-                              gutterBottom
-                              fontSize="25px"
-                              component="div"
-                              fontWeight={'bold'}
-                              m="0"
-                              sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'flex-start',
-                                  gap: '16px',
-                              }}
-                          >
-                              {item.name}
-                  
-                          </Typography>
-                  
-                          </Stack>
-                          <Stack direction="row" width="100%" gap="15px">
-                              <FcAbout fontSize="25px" />
-                                  <Typography
-                                      // ml="5px"
-                                      noWrap
-                                      fontSize="16px"
-                                      color="black"
-                                      width="100%"
-                                  >
-                                      {item.description.toString().slice(0, 30)} ...
-                                  </Typography>
+                <div className="w-[270px] h-[400px] shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-lg bg-white flex flex-col">
+                  <div className="rounded-lg p-2 flex flex-col gap-4">
+                    <div className="flex items-center justify-center relative bg-[#9CC0DF] h-[200px] rounded-lg">
+                      <div className="rounded-[7rem] overflow-hidden w-[190px] h-[190px]">
+                        <img
+                          src={item.img}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col px-[11px] gap-[11px]">
+                      <h2 className="text-[25px] font-bold m-0 flex items-center justify-start gap-[16px] truncate">
+                        {item.name}
+                      </h2>
+                    </div>
 
-                          </Stack>
-                          <Stack pb="19px" pt="11px"  direction="row" width="100%" gap="15px">
-                                        <FcOvertime fontSize="25px" />
-                                        <Typography
-                                            ml="5px"
-                                            noWrap
-                                            fontSize="16px"
-                                            color="black"
-                                        >
-                                         {createdAt}
-                                        </Typography>
-                                  </Stack>
-                              <motion.div whileTap={{ scale: 0.98 }}>
-                                  <Button
-                                      component={Link}
-                                      to={`/${item.name}?cid=${item._id}&type=${item.type}/${user}`}
-                                      variant={'contained'}
-                                      color= 'primary'
-                                      sx={{
-                                          textTransform: 'none',
-                                          width: '140px',
-                                          borderRadius: '8px',
-                                          
-                                      }}
-                                  >
-                                      More Details
-                                  </Button>
-                              </motion.div>
-                  </CardContent>
-              </Card>
-          </motion.div>
+                    <div className="flex flex-row w-full gap-[15px] px-[11px]">
+                      <FcAbout className="text-[25px] min-w-[25px]" />
+                      <p className="text-[16px] text-black w-full truncate m-0">
+                        {item.description.toString().slice(0, 30)} ...
+                      </p>
+                    </div>
+
+                    <div className="flex flex-row w-full gap-[15px] pb-[19px] pt-[11px] px-[11px]">
+                      <FcOvertime className="text-[25px] min-w-[25px]" />
+                      <p className="ml-[5px] text-[16px] text-black truncate m-0">
+                        {createdAt}
+                      </p>
+                    </div>
+
+                    <motion.div whileTap={{ scale: 0.98 }} className="px-[11px]">
+                      <Link
+                        to={`/${item.name}?cid=${item._id}&type=${item.type}/${isOwner}`}
+                        className="inline-block bg-[#1976d2] text-white text-center rounded-lg w-[140px] py-[6px] text-sm font-medium hover:bg-[#115293] transition-colors"
+                      >
+                        More Details
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
             );
-          }
-        });
-        setitem(items);
+          });
+
+        setItems(filtered);
       })
       .catch((err) => {
         console.log("Error :", err);
       });
-  }, [page]);
+  }, [page, user_info._id]);
 
   return (     
-     
-     <><Stack
-      direction="row"
-      width="100%"
-      sx={{ backgroundColor: 'primary.main' }}
-      height="125px"
-      gap="4px"
-      alignItems="center"
-      justifyContent="center"
-      
-    >
-      <Stack
-        spacing={0}
-        position="relative"
-        justifyContent="center"
-        width="100%"
-        maxWidth="1440px"
-        height="125px"
-        overflow="hidden"
-        ml={{ xs: 3, sm: 5, md: 10 }}
-      >
-
-        <>
-          <Typography fontSize={{ xs: '18px', sm: '22px', md: '25px' }} color="white" fontWeight="">
+    <>
+      <div className="flex flex-row w-full bg-[#357ABD] h-[125px] gap-1 items-center justify-center">
+        <div className="flex flex-col relative justify-center w-full max-w-[1440px] h-[125px] overflow-hidden ml-6 sm:ml-10 md:ml-20">
+          <p className="text-[18px] sm:text-[22px] md:text-[25px] text-white m-0">
             Welcome {user_info.nickname} 👋!
-          </Typography>
-
-          <Typography
-            fontSize={{ xs: '17px', sm: '21px', md: '23px' }}
-            color="white"
-            fontWeight="bold"
-          >
+          </p>
+          <p className="text-[17px] sm:text-[21px] md:text-[23px] text-white font-bold m-0">
             Here you can find the Lost Items
-          </Typography>
-        </>
-      </Stack>
-      </Stack>
+          </p>
+        </div>
+      </div>
 
-    <Stack
-      pt="20px"
-      direction="row"
-      justifyContent={'center'}
-      flexWrap="wrap"
-      gap="24px"
-      maxWidth="1440px"
-    >
-        {item}
-      </Stack>
+      <div className="flex flex-row flex-wrap justify-center pt-[20px] gap-[24px] max-w-[1440px] mx-auto">
+        {items}
+      </div>
   
-      <Paginationn page={page} setPage={setPage} max={maxPages} />
-      </>
+      <PaginationComponent page={page} setPage={setPage} max={maxPages} />
+    </>
   );
 }
