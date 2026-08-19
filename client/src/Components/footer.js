@@ -23,7 +23,7 @@ const Footer = () => {
                     </div>
                 </div>
                 <a
-                    href="https://github.com/KcMelek/Lost-Found-MERN"
+                    href="https://github.com/SriLakshmi9860"
                     target="_blank"
                     rel="noreferrer"
                     className="text-[12px] text-white mx-auto opacity-50 hover:opacity-100 transition-opacity"
