@@ -15,7 +15,7 @@ export default function Feed() {
   const [maxPages, setMaxPages] = useState(1);
 
   useEffect(() => {
-    Axios.get("http://localhost:4000/items")
+    Axios.get(`${process.env.REACT_APP_API_URL}/items`)
       .then((response) => {
         const allItems = response.data.items.reverse();
         const itemsPerPage = 9;

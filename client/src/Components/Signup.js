@@ -3,8 +3,7 @@ import { Formik, Form } from 'formik'
 import { Link } from 'react-router-dom'
 import axios from "axios";
 import { toast } from 'react-toastify';
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from '../firebase.js'
+
 import { MdPhotoCamera } from 'react-icons/md';
 
 
@@ -22,7 +21,7 @@ function Signup() {
 
       const createUser = async (payload) => {
         try {
-          const response = await axios.post("http://localhost:4000/users/create", payload);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/users/create`, payload);
           if (response.data === "Done") {
             toast.success('You are now successfully Signed up!', {
               position: "bottom-right",
@@ -52,19 +51,20 @@ function Signup() {
       };
   
       if (image) {
-        // Upload image first, then create user with image URL
-        const storageRef = ref(storage, `/images/${image.name}`);
-        const fileRef = ref(storageRef, image.name);
-        const uploadTask = uploadBytesResumable(fileRef, image);
-        uploadTask.on('state_changed', 
-          () => {}, // progress (not used)
-          (error) => console.log(error),
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((imgUrl) => {
-              createUser({ nickname, fullname, email, password, img: imgUrl });
-            });
-          }
-        );
+        const data = new FormData();
+        data.append("file", image);
+        data.append("upload_preset", "Lost-and-Found");
+        data.append("cloud_name", "uutsacov");
+
+        fetch("https://api.cloudinary.com/v1_1/uutsacov/image/upload", {
+          method: "post",
+          body: data
+        })
+        .then(res => res.json())
+        .then(data => {
+          createUser({ nickname, fullname, email, password, img: data.secure_url });
+        })
+        .catch(err => console.log(err));
       } else {
         // No image — create user without one
         createUser({ nickname, fullname, email, password });

@@ -21,7 +21,7 @@ function ItemPage() {
   const current_user = queryParams.get('type').split("/")[1];
   
   useEffect(() => {
-    axios.get(`http://localhost:4000/items/${item_id}`)
+    axios.get(`${process.env.REACT_APP_API_URL}/items/${item_id}`)
       .then((response) => {
         const data = response.data.item;
         
@@ -153,7 +153,7 @@ function ItemPage() {
   }, [item_id, current_user]);
 
   const deleteItem = () => {
-    axios.delete(`http://localhost:4000/items/delete/${item_id}`)
+    axios.delete(`${process.env.REACT_APP_API_URL}/items/delete/${item_id}`)
       .then(() => {
         setShowDelete(false);
         toast.success('Item kicked to 🗑️ successfully!', {

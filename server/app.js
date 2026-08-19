@@ -3,6 +3,9 @@ import mongoose from 'mongoose'
 import cors from 'cors'
 import dotenv from 'dotenv'
 
+import dns from 'dns'
+dns.setDefaultResultOrder('ipv4first')
+
 import userRoutes from './routes/userRoutes.js'
 import ItemRoutes from './routes/ItemRoutes.js'
 
@@ -26,7 +29,7 @@ mongoose
     .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() =>
         app.listen(port, () =>
-            console.log('Connection done and running on PORT :' + port)
+            console.log('Database connection successful, running on PORT: ' + port)
         )
     )
     .catch((err) => console.log(err.message))

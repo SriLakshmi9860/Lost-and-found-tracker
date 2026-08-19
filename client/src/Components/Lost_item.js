@@ -4,8 +4,7 @@ import axios from "axios";
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify';
 import { Formik, Form } from 'formik'
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from '../firebase.js'
+
 import * as Yup from 'yup';
 
 
@@ -61,27 +60,24 @@ const LostItem = () => {
       return;
     }
   
-    // Upload all images to Firebase and collect URLs
+    // Upload all images to Cloudinary and collect URLs
     const promises = [];
     for (let i = 0; i < image.length; i++) {
       const img = image[i];
-      const storageRef = ref(storage, `/images/${img.name}`);
-      const fileRef = ref(storageRef, img.name);
-      const uploadTask = uploadBytesResumable(fileRef, img);
+      const data = new FormData();
+      data.append("file", img);
+      data.append("upload_preset", "Lost-and-Found");
+      data.append("cloud_name", "uutsacov");
 
-      const promise = new Promise((resolve, reject) => {
-        uploadTask.on('state_changed',
-          () => {}, // progress callback (not used)
-          (error) => {
-            console.log(error);
-            reject(error);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref)
-              .then(resolve)
-              .catch(reject);
-          }
-        );
+      const promise = fetch("https://api.cloudinary.com/v1_1/uutsacov/image/upload", {
+        method: "post",
+        body: data
+      })
+      .then(res => res.json())
+      .then(data => data.secure_url)
+      .catch(err => {
+        console.log(err);
+        throw err;
       });
   
       promises.push(promise);
@@ -90,7 +86,7 @@ const LostItem = () => {
     Promise.all(promises)
       .then((urls) => {
         const newItem = { ...values, img: urls };
-        axios.post('http://localhost:4000/Items/newItem', newItem, config)
+        axios.post(`${process.env.REACT_APP_API_URL}/Items/newItem`, newItem, config)
           .then(() => {
             toast.success('Wohoo 🤩! Item listed successfully.', {
               position: "bottom-right",

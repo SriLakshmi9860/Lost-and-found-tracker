@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 
 function Login() {
   function login(values) {
-    axios.post("http://localhost:4000/users/login", {
+    axios.post(`${process.env.REACT_APP_API_URL}/users/login`, {
       email: values.email,
       password: values.password,
     })
